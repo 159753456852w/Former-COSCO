@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>視差拖曳場景（純前端）</title>
+  <style>
+    :root {
+      --far-speed: 0;
+      --mid-speed: 0.5;
+      --near-speed: 1;
+      --ease: 0.08;
+      --fog-opacity: 0.22;
+      --far-scale: 1.03;
+      --mid-scale: 1.01;
+      --near-scale: 1;
+      --far-opacity: 0.9;
+      --mid-opacity: 0.92;
+      --near-opacity: 0.98;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #0b0f1a;
+      color: #f3f4f7;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scene {
+      position: relative;
+      width: min(86vw, 1200px);
+      height: min(72vh, 720px);
+      min-width: 320px;
+      min-height: 240px;
+      overflow: hidden;
+      background: radial-gradient(1200px 600px at 20% 10%, #1b2333 0%, #0b0f1a 55%, #070a12 100%);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    .layer {
+      position: absolute;
+      inset: 0;
+      background-color: transparent;
+      background-repeat: repeat-x;
+      background-position: center bottom;
+      background-size: auto 100%;
+      transform: translate3d(0, 0, 0) scale(1);
+      will-change: transform;
+      filter: saturate(1.05);
+    }
+
+    .layer.far {
+      z-index: 1;
+      transform-origin: center;
+      filter: brightness(0.9);
+      opacity: var(--far-opacity);
+    }
+
+    .layer.middle {
+      z-index: 2;
+      transform-origin: center;
+      filter: brightness(0.98);
+      opacity: var(--mid-opacity);
+      background-repeat: no-repeat;
+    }
+
+    .layer.near {
+      z-index: 3;
+      transform-origin: center;
+      filter: brightness(1.05);
+      opacity: var(--near-opacity);
+      background-repeat: no-repeat;
+    }
+
+    .fog {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,var(--fog-opacity)) 65%, rgba(255,255,255,0.05) 100%);
+      mix-blend-mode: screen;
+    }
+
+    .frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 6;
+      width: 20%;
+      height: 20%;
+      transform: translate(-50%, -50%);
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .hint {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      z-index: 5;
+      padding: 10px 14px;
+      background: rgba(5, 7, 12, 0.55);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(6px);
+      border-radius: 10px;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+    }
+
+    .dragging .hint {
+      opacity: 0.75;
+    }
+
+    @media (max-width: 600px) {
+      .hint {
+        font-size: 13px;
+        left: 16px;
+        bottom: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene">
+    <!--
+      TODO: 將以下三層背景替換成你的圖片。
+      方式 1：直接在 CSS 中把 background-image 改成 url('your-image.png')。
+      方式 2：保留目前的 gradient 先測試互動效果。
+    -->
+    <div class="layer far" id="far"></div>
+    <div class="layer middle" id="middle"></div>
+    <div class="layer near" id="near"></div>
+    <div class="fog"></div>
+    <img class="frame" src="./素材/frame.png" alt="frame" />
+    <div class="hint">使用方向鍵移動方框</div>
+  </div>
+
+  <script>
+    const scene = document.getElementById("scene");
+    const far = document.getElementById("far");
+    const middle = document.getElementById("middle");
+    const near = document.getElementById("near");
+
+    // Local images (replace paths if you move files).
+    far.style.backgroundImage = "url('./近中遠/back2.png')";
+    middle.style.backgroundImage = "url('./近中遠/middle.png')";
+    near.style.backgroundImage = "url('./近中遠/front.png')";
+
+    const state = {
+      targetX: 0,
+      currentX: 0,
+      targetY: 0,
+      currentY: 0,
+      bgTargetX: 0,
+      bgCurrentX: 0,
+      bgHalfOffsetX: 0,
+      lastFrame: 0,
+      frameMaxOffsetX: 0,
+      frameMaxOffsetY: 0,
+      initialized: false
+    };
+
+    const speeds = {
+      far: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--far-speed")) || 0.2,
+      mid: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--mid-speed")) || 0.5,
+      near: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--near-speed")) || 1
+    };
+
+    const ease = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ease")) || 0.08;
+    const farScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--far-scale")) || 1.03;
+    const midScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--mid-scale")) || 1.01;
+    const nearScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--near-scale")) || 1;
+
+    const frameStepX = 20;
+    const frameStepY = 30;
+    const bgStepX = 40;
+
+    const farImage = new Image();
+    const middleImage = new Image();
+    const nearImage = new Image();
+    farImage.src = "./近中遠/back2.png";
+    middleImage.src = "./近中遠/middle.png";
+    nearImage.src = "./近中遠/front.png";
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function setLayerTransform() {
+      const midX = state.bgCurrentX * speeds.mid;
+      const nearX = state.bgCurrentX * speeds.near;
+
+      far.style.transform = `scale(${farScale})`;
+      middle.style.transform = `scale(${midScale})`;
+      near.style.transform = `scale(${nearScale})`;
+
+      far.style.backgroundPosition = "50% bottom";
+      middle.style.backgroundPosition = `calc(50% + ${midX}px) bottom`;
+      near.style.backgroundPosition = `calc(50% + ${nearX}px) bottom`;
+
+      const frame = document.querySelector(".frame");
+      frame.style.transform = `translate(calc(-50% + ${state.currentX}px), calc(-50% + ${state.currentY}px))`;
+    }
+
+    function updateMetrics() {
+      const rect = scene.getBoundingClientRect();
+      const viewWidth = rect.width;
+      const viewHeight = rect.height;
+
+      if (farImage.naturalWidth && farImage.naturalHeight) {
+        const farScale = Math.max(viewHeight / farImage.naturalHeight, viewWidth / farImage.naturalWidth);
+        const farWidth = farImage.naturalWidth * farScale;
+        const farHeight = farImage.naturalHeight * farScale;
+        far.style.backgroundSize = `${farWidth}px ${farHeight}px`;
+      }
+
+      let bgMaxOffsetX = 0;
+
+      if (middleImage.naturalWidth && middleImage.naturalHeight) {
+        const middleScale = Math.max(viewHeight / middleImage.naturalHeight, viewWidth / middleImage.naturalWidth);
+        const middleWidth = middleImage.naturalWidth * middleScale;
+        const middleHeight = middleImage.naturalHeight * middleScale;
+        middle.style.backgroundSize = `${middleWidth}px ${middleHeight}px`;
+        bgMaxOffsetX = Math.max(0, middleWidth - viewWidth);
+      }
+
+      if (nearImage.naturalWidth && nearImage.naturalHeight) {
+        const nearScale = Math.max(viewHeight / nearImage.naturalHeight, viewWidth / nearImage.naturalWidth);
+        const nearWidth = nearImage.naturalWidth * nearScale;
+        const nearHeight = nearImage.naturalHeight * nearScale;
+        near.style.backgroundSize = `${nearWidth}px ${nearHeight}px`;
+        bgMaxOffsetX = Math.min(bgMaxOffsetX, Math.max(0, nearWidth - viewWidth));
+      }
+
+      state.bgHalfOffsetX = bgMaxOffsetX / 2;
+
+      const frame = document.querySelector(".frame");
+      const frameRect = frame.getBoundingClientRect();
+      state.frameMaxOffsetX = Math.max(0, (viewWidth - frameRect.width) / 2);
+      state.frameMaxOffsetY = Math.max(0, (viewHeight - frameRect.height) / 2);
+
+      if (!state.initialized) {
+        state.targetX = 0;
+        state.currentX = 0;
+        state.targetY = 0;
+        state.currentY = 0;
+        state.bgTargetX = 0;
+        state.bgCurrentX = state.bgTargetX;
+        state.initialized = true;
+      } else {
+        state.targetX = clamp(state.targetX, -state.frameMaxOffsetX, state.frameMaxOffsetX);
+        state.targetY = clamp(state.targetY, -state.frameMaxOffsetY, state.frameMaxOffsetY);
+        state.bgTargetX = clamp(state.bgTargetX, -state.bgHalfOffsetX, state.bgHalfOffsetX);
+      }
+    }
+
+    function animate(timestamp) {
+      if (!state.lastFrame) state.lastFrame = timestamp;
+      const delta = timestamp - state.lastFrame;
+      state.lastFrame = timestamp;
+
+      const smooth = 1 - Math.pow(1 - ease, delta / 16.67);
+      state.currentX += (state.targetX - state.currentX) * smooth;
+      state.currentY += (state.targetY - state.currentY) * smooth;
+      state.bgCurrentX += (state.bgTargetX - state.bgCurrentX) * smooth;
+      setLayerTransform();
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") {
+        if (state.targetX <= -state.frameMaxOffsetX + 0.5) {
+          state.bgTargetX = clamp(state.bgTargetX + bgStepX, -state.bgHalfOffsetX, state.bgHalfOffsetX);
+        } else {
+          state.targetX = clamp(state.targetX - frameStepX, -state.frameMaxOffsetX, state.frameMaxOffsetX);
+        }
+      } else if (event.key === "ArrowRight") {
+        if (state.targetX >= state.frameMaxOffsetX - 0.5) {
+          state.bgTargetX = clamp(state.bgTargetX - bgStepX, -state.bgHalfOffsetX, state.bgHalfOffsetX);
+        } else {
+          state.targetX = clamp(state.targetX + frameStepX, -state.frameMaxOffsetX, state.frameMaxOffsetX);
+        }
+      } else if (event.key === "ArrowUp") {
+        state.targetY = clamp(state.targetY - frameStepY, -state.frameMaxOffsetY, state.frameMaxOffsetY);
+      } else if (event.key === "ArrowDown") {
+        state.targetY = clamp(state.targetY + frameStepY, -state.frameMaxOffsetY, state.frameMaxOffsetY);
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      updateMetrics();
+    });
+
+    farImage.addEventListener("load", updateMetrics);
+    middleImage.addEventListener("load", updateMetrics);
+    nearImage.addEventListener("load", updateMetrics);
+    updateMetrics();
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
