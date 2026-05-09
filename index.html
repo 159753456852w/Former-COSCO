@@ -7,16 +7,13 @@
   <style>
     :root {
       --far-speed: 0;
-      --mid-speed: 0.5;
+      --mid-speed: 0.1;
       --near-speed: 1;
       --ease: 0.08;
       --fog-opacity: 0.22;
       --far-scale: 1.03;
       --mid-scale: 1.01;
       --near-scale: 1;
-      --far-opacity: 0.9;
-      --mid-opacity: 0.92;
-      --near-opacity: 0.98;
     }
 
     * {
@@ -57,29 +54,22 @@
       background-size: auto 100%;
       transform: translate3d(0, 0, 0) scale(1);
       will-change: transform;
-      filter: saturate(1.05);
     }
 
     .layer.far {
       z-index: 1;
       transform-origin: center;
-      filter: brightness(0.9);
-      opacity: var(--far-opacity);
     }
 
     .layer.middle {
       z-index: 2;
       transform-origin: center;
-      filter: brightness(0.98);
-      opacity: var(--mid-opacity);
       background-repeat: no-repeat;
     }
 
     .layer.near {
       z-index: 3;
       transform-origin: center;
-      filter: brightness(1.05);
-      opacity: var(--near-opacity);
       background-repeat: no-repeat;
     }
 
