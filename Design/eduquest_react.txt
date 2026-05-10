@@ -1,0 +1,334 @@
+import React, { useState } from 'react';
+import { ChevronLeft, Star, User, BookOpen, Map, Target, Lightbulb, Play, Send } from 'lucide-react';
+
+/**
+ * EduQuest 關卡式教學遊戲介面
+ * 
+ * 包含：
+ * 1. 主選單 (Level Selection)
+ * 2. 關卡詳情頁面 (Game Area + Instructional Area)
+ * 
+ * 技術棧：React, Tailwind CSS, Lucide React (Icons)
+ */
+
+// 假資料：示範關卡
+const INITIAL_LEVELS = [
+  {
+    id: 1,
+    title: "基礎邏輯",
+    description: "學習程式邏輯的最基本運算，包括 AND、OR 與 NOT。",
+    objective: "理解並應用基本的布林運算子來解決簡單的迷宮問題。成功引導角色到達終點。",
+    instructions: [
+      "觀察畫面左側的迷宮佈局，找出通往寶箱的路徑。",
+      "從右側工具欄拖曳適當的邏輯方塊到編輯區。",
+      "組合方塊以建立判斷條件，例如：「如果 (前方無障礙物) AND (右側有路)」。",
+      "完成指令後，點擊右下角的「提交」按鈕執行。"
+    ],
+    tips: "遇到死胡同時，試著使用 NOT 運算子來反轉條件。記得，最簡潔的邏輯通常是最好的解決方案！",
+    progress: 100,
+    status: 'completed',
+    icon: <Map className="w-6 h-6" />
+  },
+  {
+    id: 2,
+    title: "進階挑戰",
+    description: "深入探討迴圈與條件判斷的組合應用。",
+    objective: "利用迴圈 (Loops) 減少重複程式碼，並優化角色的路徑效率。",
+    instructions: [
+      "分析路徑中的重複模式。",
+      "使用 'Repeat' 方塊包裹移動指令。",
+      "設置正確的次數或終止條件。",
+      "確保角色在收集完所有星星後停下。"
+    ],
+    tips: "迴圈不只能節省空間，還能讓你的邏輯更具通用性。嘗試找到最長的重複區段！",
+    progress: 45,
+    status: 'current',
+    icon: <Play className="w-6 h-6" />
+  },
+  {
+    id: 3,
+    title: "大師境界",
+    description: "掌握複雜的系統與專業技巧，挑戰您的極限並獲得最終認證。",
+    objective: "結合目前學到的所有知識，處理具有多重狀態分支的動態關卡。",
+    instructions: [
+      "處理動態變化的障礙物。",
+      "實作遞迴邏輯或複雜的巢狀條件。",
+      "最小化運算次數以獲得滿分評等。"
+    ],
+    tips: "保持冷靜，先將大問題分解成多個小問題。模組化你的思考邏輯！",
+    progress: 0,
+    status: 'locked',
+    icon: <Star className="w-6 h-6" />
+  }
+];
+
+// --- 元件：頂部導航列 ---
+const TopNavBar = ({ onBack, currentLevel }) => (
+  <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
+      <div className="flex items-center gap-4">
+        {currentLevel && (
+          <button 
+            onClick={onBack}
+            className="p-2 hover:bg-blue-50 rounded-full text-blue-600 transition-colors flex items-center gap-1 text-sm font-medium"
+          >
+            <ChevronLeft size={20} />
+            返回主選單
+          </button>
+        )}
+        <div className="text-2xl font-bold text-blue-600 tracking-tight flex items-center gap-2">
+          <BookOpen size={28} />
+          EduQuest
+        </div>
+      </div>
+      
+      <nav className="hidden md:flex gap-8 text-sm font-medium text-gray-600">
+        <button className="text-blue-600 border-b-2 border-blue-600 pb-1">學習路徑</button>
+        <button className="hover:text-blue-600 transition-colors">圖書館</button>
+        <button className="hover:text-blue-600 transition-colors">排行榜</button>
+        <button className="hover:text-blue-600 transition-colors">商店</button>
+      </nav>
+
+      <div className="flex items-center gap-4 text-gray-500">
+        <Star size={22} className="cursor-pointer hover:text-yellow-500 transition-colors" />
+        <User size={22} className="cursor-pointer hover:text-blue-600 transition-colors" />
+      </div>
+    </div>
+  </header>
+);
+
+// --- 元件：主選單關卡卡片 ---
+const LevelCard = ({ level, onSelect }) => {
+  const isLocked = level.status === 'locked';
+  
+  return (
+    <div className={`
+      relative group overflow-hidden rounded-2xl border-2 transition-all duration-300
+      ${isLocked ? 'bg-gray-50 border-gray-100 opacity-80' : 'bg-white border-transparent hover:border-blue-200 hover:shadow-xl'}
+    `}>
+      {/* 背景裝飾 */}
+      <div className={`absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform ${isLocked ? 'text-gray-400' : 'text-blue-600'}`}>
+        {level.icon}
+      </div>
+
+      <div className="p-8 relative">
+        <div className="flex justify-between items-start mb-6">
+          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+            isLocked ? 'bg-gray-200 text-gray-500' : 'bg-blue-100 text-blue-600'
+          }`}>
+            關卡 {level.id}
+          </span>
+          {level.progress > 0 && (
+            <span className="text-sm font-semibold text-blue-600">{level.progress}%</span>
+          )}
+        </div>
+
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">{level.title}</h3>
+        <p className="text-gray-600 text-sm leading-relaxed mb-8 line-clamp-2">
+          {level.description}
+        </p>
+
+        {/* 進度條 */}
+        <div className="w-full h-1.5 bg-gray-100 rounded-full mb-8 overflow-hidden">
+          <div 
+            className={`h-full transition-all duration-500 ${level.progress === 100 ? 'bg-green-500' : 'bg-blue-500'}`}
+            style={{ width: `${level.progress}%` }}
+          />
+        </div>
+
+        <button
+          disabled={isLocked}
+          onClick={() => onSelect(level)}
+          className={`
+            w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2
+            ${isLocked 
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+              : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-blue-200'}
+          `}
+        >
+          {isLocked ? '尚未解鎖' : (level.progress === 100 ? '重新複習' : '繼續學習')}
+          {!isLocked && <Play size={18} fill="currentColor" />}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- 主應用程式元件 ---
+export default function EduQuestApp() {
+  const [currentView, setCurrentView] = useState('menu'); // 'menu' or 'game'
+  const [selectedLevel, setSelectedLevel] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSelectLevel = (level) => {
+    setSelectedLevel(level);
+    setCurrentView('game');
+    window.scrollTo(0, 0);
+  };
+
+  const handleBackToMenu = () => {
+    setCurrentView('menu');
+    setSelectedLevel(null);
+  };
+
+  const handleSubmit = () => {
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      alert('已提交解答！正在評分中...');
+    }, 1000);
+  };
+
+  // 1. 主選單畫面
+  if (currentView === 'menu') {
+    return (
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+        <TopNavBar />
+        
+        <main className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+          <div className="mb-12">
+            <h1 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">學習路徑</h1>
+            <p className="text-lg text-slate-600">選擇您要挑戰的關卡，開始今天的學習旅程。</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {INITIAL_LEVELS.map(level => (
+              <LevelCard key={level.id} level={level} onSelect={handleSelectLevel} />
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // 2. 關卡詳情頁面 (遊戲區 + 教學區)
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      <TopNavBar onBack={handleBackToMenu} currentLevel={selectedLevel} />
+
+      <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-12">
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* A. 遊戲區 (左側) */}
+          <div className="flex-1 space-y-6">
+            <div className="bg-white rounded-3xl border-2 border-slate-200 overflow-hidden shadow-sm flex flex-col h-[500px] lg:h-[600px]">
+              {/* 遊戲內容 Placeholder */}
+              <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 p-12 text-center">
+                <div className="w-24 h-24 bg-slate-200 rounded-2xl flex items-center justify-center mb-6 text-slate-400">
+                  <Play size={48} />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">遊戲內容將在此處呈現</h3>
+                <p className="text-slate-500 max-w-sm">互動式學習模組載入中... 請在這裡嵌入您的 Phaser、Canvas 或自訂 React 遊戲元件。</p>
+              </div>
+
+              {/* 提交按鈕區域 */}
+              <div className="p-6 bg-white border-t border-slate-100 flex justify-end">
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className={`
+                    px-8 py-4 rounded-2xl font-bold flex items-center gap-2 transition-all active:scale-95
+                    ${isSubmitting 
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100 hover:shadow-blue-200'}
+                  `}
+                >
+                  {isSubmitting ? '處理中...' : '提交'}
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* 小螢幕顯示的簡單進度 */}
+            <div className="lg:hidden p-6 bg-white rounded-2xl border-2 border-slate-100 flex justify-between items-center">
+              <div>
+                <span className="text-xs font-bold text-blue-600 uppercase">目前進度</span>
+                <div className="text-lg font-bold">單元 1/4</div>
+              </div>
+              <div className="w-32 h-2 bg-slate-100 rounded-full">
+                <div className="h-full bg-green-500 w-1/4 rounded-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* B. 教學區 (右側) */}
+          <aside className="w-full lg:w-[420px] space-y-6">
+            <div className="bg-white rounded-3xl border-2 border-blue-100 p-8 shadow-sm space-y-8">
+              {/* 標題與目標 */}
+              <section>
+                <div className="flex items-center gap-2 text-blue-600 mb-3">
+                  <Target size={24} />
+                  <h2 className="text-3xl font-black tracking-tight">關卡 {selectedLevel.id}: {selectedLevel.title}</h2>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                  <h4 className="text-sm font-bold text-blue-800 uppercase mb-2">目標</h4>
+                  <p className="text-blue-900/80 leading-relaxed font-medium">
+                    {selectedLevel.objective}
+                  </p>
+                </div>
+              </section>
+
+              {/* 教學說明 */}
+              <section>
+                <div className="flex items-center gap-2 text-slate-800 mb-4">
+                  <BookOpen size={20} className="text-blue-600" />
+                  <h3 className="text-xl font-bold">教學說明</h3>
+                </div>
+                <ul className="space-y-4">
+                  {selectedLevel.instructions.map((step, index) => (
+                    <li key={index} className="flex gap-4">
+                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
+                        {index + 1}
+                      </span>
+                      <p className="text-slate-600 text-sm leading-relaxed pt-1">
+                        {step}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              {/* 提示或補充 */}
+              <section className="pt-6 border-t border-slate-100">
+                <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 relative overflow-hidden">
+                  <Lightbulb className="absolute -right-4 -top-4 w-16 h-16 text-amber-200 rotate-12" />
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 text-amber-700 mb-2 font-bold">
+                      <Lightbulb size={18} />
+                      提示與補充
+                    </div>
+                    <p className="text-amber-800/80 text-sm leading-relaxed">
+                      {selectedLevel.tips}
+                    </p>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            {/* 額外輔助卡片 */}
+            <div className="bg-slate-900 rounded-3xl p-8 text-white hidden lg:block">
+              <h4 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">目前進度</h4>
+              <div className="flex items-end gap-2 mb-6">
+                <span className="text-4xl font-black">25%</span>
+                <span className="text-slate-500 text-sm mb-1 pb-1">單元 1/4</span>
+              </div>
+              <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-green-400 w-1/4 rounded-full shadow-[0_0_12px_rgba(74,222,128,0.3)]" />
+              </div>
+              <div className="mt-8 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                  <Star size={20} fill="currentColor" />
+                </div>
+                <div className="text-sm">
+                  <div className="font-bold">解鎖成就</div>
+                  <div className="text-slate-500">完成基礎邏輯篇</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-TW"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Level Detail - EduQuest</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#fffbff",
+                        "outline": "#727785",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#d8e2ff",
+                        "surface-container-low": "#eff4ff",
+                        "on-error": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "primary-container": "#2170e4",
+                        "surface": "#f8f9ff",
+                        "tertiary": "#825100",
+                        "primary-fixed-dim": "#adc6ff",
+                        "secondary-container": "#6cf8bb",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-surface-variant": "#424754",
+                        "on-surface": "#0b1c30",
+                        "surface-variant": "#d3e4fe",
+                        "on-background": "#0b1c30",
+                        "on-primary-fixed": "#001a42",
+                        "on-primary-container": "#fefcff",
+                        "on-secondary-fixed": "#002113",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#a36700",
+                        "primary": "#0058be",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#6ffbbe",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-dim": "#cbdbf5",
+                        "outline-variant": "#c2c6d6",
+                        "inverse-primary": "#adc6ff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "surface-container-highest": "#d3e4fe",
+                        "inverse-on-surface": "#eaf1ff",
+                        "background": "#f8f9ff",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "on-secondary-fixed-variant": "#005236",
+                        "surface-container-high": "#dce9ff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-secondary-container": "#00714d",
+                        "inverse-surface": "#213145",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#006c49",
+                        "on-primary-fixed-variant": "#004395",
+                        "surface-tint": "#005ac2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "space-md": "1rem",
+                        "space-xxl": "3rem",
+                        "margin-mobile": "1rem",
+                        "gutter": "1.5rem",
+                        "space-xl": "2rem",
+                        "space-xs": "0.25rem",
+                        "space-sm": "0.5rem",
+                        "space-lg": "1.5rem",
+                        "margin-desktop": "5rem",
+                        "max-width-content": "1200px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F8F9FF; /* bg-background */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        .ambient-shadow-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-md bg-background min-h-screen flex flex-col antialiased">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest border-b border-outline-variant shadow-sm w-full top-0 z-40 sticky">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-max-width-content mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined fill-icon text-primary">school</span>
+                EduQuest
+            </div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="text-primary border-b-2 border-primary pb-1 font-label-md text-label-md opacity-80 transition-opacity" href="#">Path</a>
+<a class="text-on-surface-variant font-medium font-label-md text-label-md hover:text-primary transition-colors" href="#">Library</a>
+<a class="text-on-surface-variant font-medium font-label-md text-label-md hover:text-primary transition-colors" href="#">Leaderboard</a>
+<a class="text-on-surface-variant font-medium font-label-md text-label-md hover:text-primary transition-colors" href="#">Shop</a>
+</nav>
+<div class="flex items-center gap-4 text-primary">
+<button aria-label="star" class="hover:bg-surface-container p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="star">star</span>
+</button>
+<button aria-label="account_circle" class="hover:bg-surface-container p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-max-width-content mx-auto px-margin-mobile md:px-margin-desktop py-space-xl">
+<div class="mb-space-md">
+<button class="flex items-center gap-2 text-primary hover:text-primary-container font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+                返回主選單
+            </button>
+</div>
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Game Area (Left/Top) -->
+<section class="flex-grow lg:w-2/3 flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest rounded-xl ambient-shadow-card flex-grow relative overflow-hidden flex flex-col min-h-[500px]">
+<!-- Interactive Canvas Area -->
+<div class="flex-grow bg-surface-container flex items-center justify-center relative">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-surface-variant to-surface opacity-50 pointer-events-none"></div>
+<div class="text-center z-10 p-space-lg">
+<span class="material-symbols-outlined text-[64px] text-outline-variant mb-space-sm block">videogame_asset</span>
+<p class="font-headline-md text-headline-md text-on-surface-variant">遊戲內容將在此處呈現</p>
+<p class="font-body-md text-body-md text-outline mt-2">互動式學習模組載入中...</p>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="p-space-md bg-surface-container-lowest border-t border-outline-variant flex justify-end">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg hover:bg-primary-container active:scale-95 transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
+                            提交
+                            <span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Instructional Area (Right/Bottom) -->
+<aside class="lg:w-1/3 flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest rounded-xl ambient-shadow-card p-space-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-background mb-space-sm text-primary">關卡 1: 基礎邏輯</h1>
+<div class="mt-space-md">
+<h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 mb-space-xs">
+<span class="material-symbols-outlined text-secondary fill-icon">flag</span>
+                            目標
+                        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                            理解並應用基本的布林運算子 (AND, OR, NOT) 來解決簡單的迷宮問題。成功引導角色到達終點。
+                        </p>
+</div>
+<div class="mt-space-lg">
+<h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 mb-space-xs">
+<span class="material-symbols-outlined text-tertiary fill-icon">menu_book</span>
+                            教學說明
+                        </h2>
+<ul class="list-none space-y-3 font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-3">
+<span class="bg-surface-container text-primary rounded-full w-6 h-6 flex items-center justify-center font-label-sm shrink-0 mt-0.5">1</span>
+<div>觀察畫面左側的迷宮佈局，找出通往寶箱的路徑。</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="bg-surface-container text-primary rounded-full w-6 h-6 flex items-center justify-center font-label-sm shrink-0 mt-0.5">2</span>
+<div>從右側工具欄拖曳適當的邏輯方塊到編輯區。</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="bg-surface-container text-primary rounded-full w-6 h-6 flex items-center justify-center font-label-sm shrink-0 mt-0.5">3</span>
+<div>組合方塊以建立判斷條件，例如：「如果 (前方無障礙物) AND (右側有路)」。</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="bg-surface-container text-primary rounded-full w-6 h-6 flex items-center justify-center font-label-sm shrink-0 mt-0.5">4</span>
+<div>完成指令後，點擊右下角的「提交」按鈕執行。</div>
+</li>
+</ul>
+</div>
+<div class="mt-space-lg bg-surface-container-low rounded-lg p-space-md border border-outline-variant">
+<h3 class="font-label-md text-label-md text-primary flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined fill-icon text-primary">lightbulb</span>
+                            提示與補充
+                        </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                            遇到死胡同時，試著使用 <strong>NOT</strong> 運算子來反轉條件。記得，最簡潔的邏輯通常是最好的解決方案！
+                        </p>
+</div>
+</div>
+<!-- Progress / Status Card (Optional enhancement for structural balance) -->
+<div class="bg-surface-container-lowest rounded-xl ambient-shadow-card p-space-md border-l-4 border-secondary">
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md text-on-surface-variant">目前進度</span>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-1 rounded-full">基礎篇</span>
+</div>
+<div class="mt-3 w-full bg-surface-variant rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full" style="width: 25%"></div>
+</div>
+<p class="font-label-sm text-label-sm text-outline mt-2 text-right">單元 1/4</p>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 w-full z-50 md:hidden border-t border-outline-variant bg-surface-container-lowest shadow-lg pb-safe">
+<div class="flex justify-around items-center px-4 py-2">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined fill-icon" data-icon="map">map</span>
+<span class="font-label-sm text-label-sm mt-1">Path</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-sm text-label-sm mt-1">Library</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span class="font-label-sm text-label-sm mt-1">Leaderboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>
