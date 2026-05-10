@@ -1,55 +1,112 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html class="light" lang="zh-Hant">
+
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>視差拖曳場景（純前端）</title>
-  <style>
-    :root {
-      --far-speed: 0;
-      --mid-speed: 0.1;
-      --near-speed: 1;
-      --ease: 0.08;
-      --fog-opacity: 0.22;
-      --far-scale: 1.03;
-      --mid-scale: 1.01;
-      --near-scale: 1;
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduQuest - 攝影構圖學習遊戲</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-tertiary-container": "#fffbff", "outline": "#727785", "on-tertiary": "#ffffff",
+            "primary-fixed": "#d8e2ff", "surface-container-low": "#eff4ff", "on-error": "#ffffff",
+            "surface-container": "#e5eeff", "primary-container": "#2170e4", "surface": "#f8f9ff",
+            "tertiary": "#825100", "primary-fixed-dim": "#adc6ff", "secondary-container": "#6cf8bb",
+            "tertiary-fixed": "#ffddb8", "on-surface-variant": "#424754", "on-surface": "#0b1c30",
+            "surface-variant": "#d3e4fe", "on-background": "#0b1c30", "on-primary-fixed": "#001a42",
+            "on-primary-container": "#fefcff", "on-secondary-fixed": "#002113",
+            "on-error-container": "#93000a", "tertiary-container": "#a36700", "primary": "#0058be",
+            "error": "#ba1a1a", "secondary-fixed": "#6ffbbe", "secondary-fixed-dim": "#4edea3",
+            "surface-dim": "#cbdbf5", "outline-variant": "#c2c6d6", "inverse-primary": "#adc6ff",
+            "on-tertiary-fixed": "#2a1700", "tertiary-fixed-dim": "#ffb95f",
+            "surface-container-highest": "#d3e4fe", "inverse-on-surface": "#eaf1ff",
+            "background": "#f8f9ff", "on-secondary": "#ffffff", "surface-bright": "#f8f9ff",
+            "on-secondary-fixed-variant": "#005236", "surface-container-high": "#dce9ff",
+            "error-container": "#ffdad6", "on-tertiary-fixed-variant": "#653e00",
+            "on-secondary-container": "#00714d", "inverse-surface": "#213145",
+            "on-primary": "#ffffff", "surface-container-lowest": "#ffffff", "secondary": "#006c49",
+            "on-primary-fixed-variant": "#004395", "surface-tint": "#005ac2"
+          },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+          spacing: {
+            "space-md": "1rem", "space-xxl": "3rem", "margin-mobile": "1rem", "gutter": "1.5rem",
+            "space-xl": "2rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-lg": "1.5rem",
+            "margin-desktop": "5rem", "max-width-content": "1200px"
+          },
+          fontFamily: {
+            "sans": ["Inter", "Noto Sans TC", "sans-serif"],
+            "headline-xl": ["Inter", "Noto Sans TC", "sans-serif"],
+            "body-md": ["Inter", "Noto Sans TC", "sans-serif"],
+            "body-lg": ["Inter", "Noto Sans TC", "sans-serif"],
+            "headline-lg": ["Inter", "Noto Sans TC", "sans-serif"],
+            "body-sm": ["Inter", "Noto Sans TC", "sans-serif"],
+            "label-sm": ["Inter", "Noto Sans TC", "sans-serif"],
+            "label-md": ["Inter", "Noto Sans TC", "sans-serif"],
+            "headline-md": ["Inter", "Noto Sans TC", "sans-serif"],
+            "headline-sm": ["Inter", "Noto Sans TC", "sans-serif"]
+          },
+          fontSize: {
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+          }
+        }
+      }
     }
-
+  </script>
+  <style>
     * {
       box-sizing: border-box;
     }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: #0b0f1a;
-      color: #f3f4f7;
-      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     }
 
+    .fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .ambient-shadow {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .hover-shadow:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Parallax scene */
     .scene {
       position: relative;
-      width: min(86vw, 1200px);
-      height: min(72vh, 720px);
-      min-width: 320px;
-      min-height: 240px;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       background: radial-gradient(1200px 600px at 20% 10%, #1b2333 0%, #0b0f1a 55%, #070a12 100%);
-      border-radius: 18px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      border-radius: 12px 12px 0 0;
     }
 
     .layer {
       position: absolute;
       inset: 0;
       background-color: transparent;
-      background-repeat: repeat-x;
+      background-repeat: no-repeat;
       background-position: center bottom;
       background-size: auto 100%;
       transform: translate3d(0, 0, 0) scale(1);
@@ -58,19 +115,14 @@
 
     .layer.far {
       z-index: 1;
-      transform-origin: center;
     }
 
     .layer.middle {
       z-index: 2;
-      transform-origin: center;
-      background-repeat: no-repeat;
     }
 
     .layer.near {
       z-index: 3;
-      transform-origin: center;
-      background-repeat: no-repeat;
     }
 
     .fog {
@@ -78,226 +130,837 @@
       inset: 0;
       z-index: 4;
       pointer-events: none;
-      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,var(--fog-opacity)) 65%, rgba(255,255,255,0.05) 100%);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.15) 65%, rgba(255, 255, 255, 0.05) 100%);
       mix-blend-mode: screen;
     }
 
-    .frame {
+    /* Viewfinder frame */
+    .vf-frame {
       position: absolute;
       top: 50%;
       left: 50%;
       z-index: 6;
-      width: 20%;
-      height: 20%;
+      width: 17%;
+      height: 17%;
       transform: translate(-50%, -50%);
       object-fit: contain;
       pointer-events: none;
     }
 
-    .hint {
+    /* Result overlay */
+    .result-overlay {
       position: absolute;
-      left: 24px;
-      bottom: 24px;
-      z-index: 5;
-      padding: 10px 14px;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+
+    .result-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .result-card {
+      background: white;
+      border-radius: 20px;
+      padding: 36px;
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+      transform: scale(0.9);
+      transition: transform 0.4s;
+    }
+
+    .result-overlay.show .result-card {
+      transform: scale(1);
+    }
+
+    .view-enter {
+      animation: slideIn 0.35s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .pulse-hint {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.7
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    .star-anim {
+      animation: starPop 0.4s ease-out both;
+    }
+
+    .star-anim:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .star-anim:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes starPop {
+      from {
+        transform: scale(0) rotate(-30deg);
+        opacity: 0
+      }
+
+      to {
+        transform: scale(1) rotate(0);
+        opacity: 1
+      }
+    }
+
+    .scene-hint {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      z-index: 7;
+      padding: 8px 14px;
       background: rgba(5, 7, 12, 0.55);
-      border: 1px solid rgba(255,255,255,0.15);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(6px);
       border-radius: 10px;
-      font-size: 14px;
-      letter-spacing: 0.3px;
-    }
-
-    .dragging .hint {
-      opacity: 0.75;
-    }
-
-    @media (max-width: 600px) {
-      .hint {
-        font-size: 13px;
-        left: 16px;
-        bottom: 16px;
-      }
+      font-size: 13px;
+      color: #f3f4f7;
+      pointer-events: none;
     }
   </style>
 </head>
-<body>
-  <div class="scene" id="scene">
-    <!--
-      TODO: 將以下三層背景替換成你的圖片。
-      方式 1：直接在 CSS 中把 background-image 改成 url('your-image.png')。
-      方式 2：保留目前的 gradient 先測試互動效果。
-    -->
-    <div class="layer far" id="far"></div>
-    <div class="layer middle" id="middle"></div>
-    <div class="layer near" id="near"></div>
-    <div class="fog"></div>
-    <img class="frame" src="./素材/frame.png" alt="frame" />
-    <div class="hint">使用方向鍵移動方框</div>
-  </div>
+
+<body class="bg-background text-on-background min-h-screen font-sans antialiased">
+  <div id="app"></div>
 
   <script>
-    const scene = document.getElementById("scene");
-    const far = document.getElementById("far");
-    const middle = document.getElementById("middle");
-    const near = document.getElementById("near");
+    // =============================================
+    // 題目資料 (from 題目.pdf + 素材/)
+    // =============================================
+    const LEVELS = [
+      {
+        id: 1,
+        title: "框架構圖",
+        question: "使用框架構圖拍攝人物與帳篷",
+        technique: "框架構圖",
+        techniqueDesc: "利用周圍景物作為前景框架，將主體包圍起來，可增添畫面層次感。",
+        image: "素材/q1.jpg",
+        answerImage: "素材/q1_1.jpg",
+        instructions: [
+          "在視差場景中移動取景框，尋找適合的構圖位置。",
+          "嘗試讓前景的樹木或物體形成天然框架。",
+          "將主體（如帳篷、人物）置於框架內部。",
+          "確認構圖後，點擊「提交拍攝」按鈕。"
+        ],
+        tips: "好的框架構圖會讓觀眾的視線自然聚焦到主體上。利用前景的樹幹或枝葉作為天然框架，包圍中景的營地場景！",
+        targetZone: { x: 0.50, y: 0.45, tolerance: 0.14 }
+      },
+      {
+        id: 2,
+        title: "特寫鏡頭",
+        question: "拍攝蜻蜓的特寫鏡頭",
+        technique: "特寫鏡頭",
+        techniqueDesc: "近距離拍攝主體，可強調物體細節、傳達情緒。",
+        image: "素材/q2.jpg",
+        answerImage: null,
+        instructions: [
+          "移動取景框靠近場景中某個有細節的物體。",
+          "特寫構圖的關鍵是讓主體佔據大部分畫面。",
+          "排除不必要的背景干擾，聚焦細節。",
+          "完成構圖後點擊「提交拍攝」。"
+        ],
+        tips: "在視差場景中，試著將取景框移到前景元素附近。特寫鏡頭的精髓在於「靠近」，讓花朵、石頭等細節填滿畫面！",
+        targetZone: { x: 0.25, y: 0.60, tolerance: 0.15 }
+      },
+      {
+        id: 3,
+        title: "引導線構圖",
+        question: "用引導線構圖拍攝河流與山交接",
+        technique: "引導線構圖",
+        techniqueDesc: "利用畫面中的線條元素，將觀看者視線引導至視覺焦點。",
+        image: "素材/q3.jpg",
+        answerImage: "素材/q3_1.jpg",
+        instructions: [
+          "在場景中尋找具有線條感的元素（如河流、道路、山脊線）。",
+          "移動取景框，讓線條從畫面邊緣延伸到中心。",
+          "確保線條匯聚的焦點在構圖中佔據重要位置。",
+          "完成構圖後點擊「提交拍攝」。"
+        ],
+        tips: "場景中的河流是天然的引導線！讓河流從前景延伸到中景的山腳下，引導觀眾的視線深入畫面。",
+        targetZone: { x: 0.50, y: 0.50, tolerance: 0.14 }
+      },
+      {
+        id: 4,
+        title: "中心點構圖",
+        question: "用中心點構圖拍攝營地",
+        technique: "中心點構圖",
+        techniqueDesc: "將拍攝主體放置在畫面正中央，能瞬間集中視線、強調主題。",
+        image: "素材/q4.jpg",
+        answerImage: "素材/q4_1.png",
+        instructions: [
+          "找出場景中最重要的主體元素。",
+          "移動取景框，將主體放在畫面的正中央。",
+          "注意主體與周圍環境的對稱平衡。",
+          "完成構圖後點擊「提交拍攝」。"
+        ],
+        tips: "中心構圖適合對稱性強或有視覺衝擊力的主體。在這個場景中，嘗試把營地或最顯眼的物體放在取景框正中央！",
+        targetZone: { x: 0.50, y: 0.48, tolerance: 0.12 }
+      },
+      {
+        id: 5,
+        title: "前景構圖",
+        question: "用前景構圖拍攝小橋和花卉",
+        technique: "前景構圖",
+        techniqueDesc: "在主體前方加入元素做為前景，增強相片立體感、層次感與故事性。",
+        image: "素材/q5.jpg",
+        answerImage: "素材/q5_1.jpg",
+        instructions: [
+          "觀察場景中的前景元素（如花卉、草叢、石頭）。",
+          "移動取景框，讓前景與遠景主體同時出現在畫面中。",
+          "前景應佔據畫面下方，但不遮擋遠方主體。",
+          "完成構圖後點擊「提交拍攝」。"
+        ],
+        tips: "視差場景中，近景的樹木和花卉是最好的前景元素！讓它們出現在取景框的邊緣或下方，遠方的山景作為主體。",
+        targetZone: { x: 0.35, y: 0.55, tolerance: 0.15 }
+      },
+      {
+        id: 6,
+        title: "遠景鏡頭",
+        question: "拍攝山峰與天空的遠景鏡頭",
+        technique: "遠景鏡頭",
+        techniqueDesc: "涵蓋大量背景，用於表現風景的壯麗與遼闊。",
+        image: "素材/q6.jpg",
+        answerImage: null,
+        instructions: [
+          "遠景鏡頭需要涵蓋廣闘的場景。",
+          "移動取景框到場景上方，對準遠方的山脈與天空。",
+          "讓天空佔據上方、山脈填充下方，展現壯麗感。",
+          "完成構圖後點擊「提交拍攝」。"
+        ],
+        tips: "遠景鏡頭的關鍵是展現場景的宏大規模。將取景框移到畫面上方，讓遠方山脈與天空成為主角，排除太多前景干擾！",
+        targetZone: { x: 0.50, y: 0.30, tolerance: 0.15 }
+      }
+    ];
 
-    // Local images (replace paths if you move files).
-    far.style.backgroundImage = "url('./近中遠/back2.png')";
-    middle.style.backgroundImage = "url('./近中遠/middle.png')";
-    near.style.backgroundImage = "url('./近中遠/front.png')";
-
+    // =============================================
+    // App State
+    // =============================================
     const state = {
-      targetX: 0,
-      currentX: 0,
-      targetY: 0,
-      currentY: 0,
-      bgTargetX: 0,
-      bgCurrentX: 0,
-      bgHalfOffsetX: 0,
-      lastFrame: 0,
-      frameMaxOffsetX: 0,
-      frameMaxOffsetY: 0,
+      view: 'menu',
+      selectedLevel: null,
+      completedLevels: {},   // 純記憶體，重新載入即清空
+      capturedImages: {},    // levelId -> base64 dataURL
+      showResult: false,
+      isSubmitting: false
+    };
+
+    // Parallax engine state (shared by all levels)
+    const pState = {
+      targetX: 0, currentX: 0,
+      targetY: 0, currentY: 0,
+      bgTargetX: 0, bgCurrentX: 0,
+      bgTargetY: 0, bgCurrentY: 0,
+      bgHalfOffsetX: 200, bgHalfOffsetY: 120,
+      frameMaxX: 150, frameMaxY: 100,
       initialized: false
     };
 
-    const speeds = {
-      far: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--far-speed")) || 0.2,
-      mid: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--mid-speed")) || 0.5,
-      near: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--near-speed")) || 1
-    };
+    let animId = null;
 
-    const ease = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ease")) || 0.08;
-    const farScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--far-scale")) || 1.03;
-    const midScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--mid-scale")) || 1.01;
-    const nearScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--near-scale")) || 1;
-
-    const frameStepX = 20;
-    const frameStepY = 30;
-    const bgStepX = 40;
-
-    const farImage = new Image();
-    const middleImage = new Image();
-    const nearImage = new Image();
-    farImage.src = "./近中遠/back2.png";
-    middleImage.src = "./近中遠/middle.png";
-    nearImage.src = "./近中遠/front.png";
-
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
+    // 不再使用 localStorage（每次重新載入即清空）
+    function getOverallProgress() {
+      return Math.round((Object.keys(state.completedLevels).length / LEVELS.length) * 100);
     }
-
-    function setLayerTransform() {
-      const midX = state.bgCurrentX * speeds.mid;
-      const nearX = state.bgCurrentX * speeds.near;
-
-      far.style.transform = `scale(${farScale})`;
-      middle.style.transform = `scale(${midScale})`;
-      near.style.transform = `scale(${nearScale})`;
-
-      far.style.backgroundPosition = "50% bottom";
-      middle.style.backgroundPosition = `calc(50% + ${midX}px) bottom`;
-      near.style.backgroundPosition = `calc(50% + ${nearX}px) bottom`;
-
-      const frame = document.querySelector(".frame");
-      frame.style.transform = `translate(calc(-50% + ${state.currentX}px), calc(-50% + ${state.currentY}px))`;
+    function getLevelStatus(level) {
+      if (state.completedLevels[level.id]) return 'completed';
+      return (level.id === 1 || state.completedLevels[level.id - 1]) ? 'available' : 'locked';
     }
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
-    function updateMetrics() {
-      const rect = scene.getBoundingClientRect();
-      const viewWidth = rect.width;
-      const viewHeight = rect.height;
-
-      if (farImage.naturalWidth && farImage.naturalHeight) {
-        const farScale = Math.max(viewHeight / farImage.naturalHeight, viewWidth / farImage.naturalWidth);
-        const farWidth = farImage.naturalWidth * farScale;
-        const farHeight = farImage.naturalHeight * farScale;
-        far.style.backgroundSize = `${farWidth}px ${farHeight}px`;
-      }
-
-      let bgMaxOffsetX = 0;
-
-      if (middleImage.naturalWidth && middleImage.naturalHeight) {
-        const middleScale = Math.max(viewHeight / middleImage.naturalHeight, viewWidth / middleImage.naturalWidth);
-        const middleWidth = middleImage.naturalWidth * middleScale;
-        const middleHeight = middleImage.naturalHeight * middleScale;
-        middle.style.backgroundSize = `${middleWidth}px ${middleHeight}px`;
-        bgMaxOffsetX = Math.max(0, middleWidth - viewWidth);
-      }
-
-      if (nearImage.naturalWidth && nearImage.naturalHeight) {
-        const nearScale = Math.max(viewHeight / nearImage.naturalHeight, viewWidth / nearImage.naturalWidth);
-        const nearWidth = nearImage.naturalWidth * nearScale;
-        const nearHeight = nearImage.naturalHeight * nearScale;
-        near.style.backgroundSize = `${nearWidth}px ${nearHeight}px`;
-        bgMaxOffsetX = Math.min(bgMaxOffsetX, Math.max(0, nearWidth - viewWidth));
-      }
-
-      state.bgHalfOffsetX = bgMaxOffsetX / 2;
-
-      const frame = document.querySelector(".frame");
-      const frameRect = frame.getBoundingClientRect();
-      state.frameMaxOffsetX = Math.max(0, (viewWidth - frameRect.width) / 2);
-      state.frameMaxOffsetY = Math.max(0, (viewHeight - frameRect.height) / 2);
-
-      if (!state.initialized) {
-        state.targetX = 0;
-        state.currentX = 0;
-        state.targetY = 0;
-        state.currentY = 0;
-        state.bgTargetX = 0;
-        state.bgCurrentX = state.bgTargetX;
-        state.initialized = true;
+    // =============================================
+    // Render
+    // =============================================
+    function render() {
+      if (animId) { cancelAnimationFrame(animId); animId = null; }
+      const app = document.getElementById('app');
+      if (state.view === 'menu') {
+        app.innerHTML = renderMenu();
+        bindMenuEvents();
+      } else if (state.view === 'album') {
+        app.innerHTML = renderAlbum();
+        bindAlbumEvents();
       } else {
-        state.targetX = clamp(state.targetX, -state.frameMaxOffsetX, state.frameMaxOffsetX);
-        state.targetY = clamp(state.targetY, -state.frameMaxOffsetY, state.frameMaxOffsetY);
-        state.bgTargetX = clamp(state.bgTargetX, -state.bgHalfOffsetX, state.bgHalfOffsetX);
+        app.innerHTML = renderGame();
+        bindGameEvents();
+        initParallaxGame();
       }
     }
 
-    function animate(timestamp) {
-      if (!state.lastFrame) state.lastFrame = timestamp;
-      const delta = timestamp - state.lastFrame;
-      state.lastFrame = timestamp;
+    // ---------- MENU ----------
+    function renderMenu() {
+      const progress = getOverallProgress();
+      const cards = LEVELS.map(level => {
+        const status = getLevelStatus(level);
+        const done = status === 'completed';
+        const isLocked = status === 'locked';
+        const isCurrent = status === 'available' && !done;
 
-      const smooth = 1 - Math.pow(1 - ease, delta / 16.67);
-      state.currentX += (state.targetX - state.currentX) * smooth;
-      state.currentY += (state.targetY - state.currentY) * smooth;
-      state.bgCurrentX += (state.bgTargetX - state.bgCurrentX) * smooth;
-      setLayerTransform();
-      requestAnimationFrame(animate);
+        const border = isCurrent
+          ? 'border-primary-fixed ring-1 ring-primary-fixed ring-offset-2 ring-offset-background hover:-translate-y-1'
+          : isLocked ? 'border-transparent opacity-75 grayscale-[0.3]' : 'border-transparent hover:border-outline-variant';
+
+        const btn = isLocked
+          ? `<button class="w-full bg-surface-container text-outline font-label-md text-label-md py-3 rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled><span class="material-symbols-outlined text-[18px]">lock</span>尚未解鎖</button>`
+          : done
+            ? `<button class="level-btn w-full bg-surface-variant text-primary font-label-md text-label-md py-3 rounded-lg hover:bg-surface-dim transition-colors border border-primary-fixed-dim" data-id="${level.id}">重新複習</button>`
+            : `<button class="level-btn w-full bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-surface-tint shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2" data-id="${level.id}"><span class="material-symbols-outlined text-[18px]">play_arrow</span>開始學習</button>`;
+
+        const badge = isLocked ? 'bg-surface-container text-outline' : isCurrent ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container text-primary';
+        const curBadge = isCurrent ? '<div class="absolute top-3 right-3 bg-primary text-on-primary font-label-sm text-label-sm px-2 py-1 rounded shadow-sm">當前進度</div>' : '';
+        const doneTag = done ? '<div class="flex gap-1 mt-1 items-center text-secondary font-label-sm text-label-sm"><span class="material-symbols-outlined fill-icon" style="font-size:16px">check_circle</span>已拍攝</div>' : '';
+        const lockOverlay = isLocked ? '<div class="absolute inset-0 bg-surface/40 backdrop-blur-[2px] flex items-center justify-center"><div class="bg-surface-container-lowest p-3 rounded-full shadow-md"><span class="material-symbols-outlined text-outline text-[32px]">lock</span></div></div>' : '';
+
+        return `<div class="bg-surface-container-lowest rounded-xl p-space-xl flex flex-col h-full ambient-shadow hover-shadow transition-all duration-300 border ${border} group">
+      <div class="w-full h-48 rounded-lg mb-space-lg overflow-hidden bg-surface-container flex items-center justify-center relative">
+        <img src="${level.image}" alt="${level.title}" class="w-full h-full object-cover ${isLocked ? 'opacity-50' : 'opacity-90 group-hover:scale-105'} transition-transform duration-500"/>${curBadge}${lockOverlay}
+      </div>
+      <div class="${badge} px-3 py-1 rounded-full font-label-sm text-label-sm w-fit mb-space-md flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">${isLocked ? 'lock' : isCurrent ? 'route' : 'play_lesson'}</span>關卡 ${level.id}
+      </div>
+      <h2 class="font-headline-sm text-headline-sm text-on-surface mb-space-sm">${level.title}</h2>
+      <p class="font-body-md text-body-md text-on-surface-variant flex-grow mb-space-sm">${level.techniqueDesc}</p>
+      ${doneTag}
+      <div class="w-full bg-surface-container h-2 rounded-full mb-space-lg overflow-hidden mt-space-md"><div class="bg-primary h-full rounded-full transition-all duration-500" style="width:${done ? 100 : 0}%"></div></div>
+      ${btn}
+    </div>`;
+      }).join('');
+
+      return `
+  <header class="bg-surface-container-lowest border-b border-outline-variant shadow-sm w-full sticky top-0 z-50">
+    <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-max-width-content mx-auto">
+      <div class="font-headline-md text-headline-md font-bold text-primary flex items-center gap-2">
+        <span class="material-symbols-outlined fill-icon text-primary">photo_camera</span>EduQuest
+      </div>
+      <nav class="hidden md:flex items-center gap-space-xl">
+        <a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 opacity-80" href="#">Path</a>
+        <a class="font-label-md text-label-md text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Library</a>
+        <a class="font-label-md text-label-md text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Leaderboard</a>
+        <a class="font-label-md text-label-md text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Shop</a>
+      </nav>
+      <div class="flex items-center gap-space-md text-primary">
+        <button id="album-menu-btn" class="flex items-center gap-1 hover:bg-surface-container px-3 py-2 rounded-full transition-colors font-label-md text-label-md"><span class="material-symbols-outlined fill-icon text-[20px]">photo_library</span>相簿</button>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-max-width-content mx-auto px-margin-mobile md:px-margin-desktop py-space-xxl view-enter">
+    <div class="mb-space-xl text-center md:text-left flex flex-col md:flex-row justify-between items-end gap-space-md">
+      <div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface mb-space-sm">學習路徑</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant">選擇您要挑戰的關卡，開始今天的攝影構圖學習旅程。</p>
+      </div>
+      <div class="bg-surface-container px-4 py-2 rounded-full flex items-center gap-space-sm shadow-sm border border-outline-variant">
+        <span class="material-symbols-outlined text-primary">local_fire_department</span>
+        <span class="font-label-md text-label-md text-on-surface">總進度 ${progress}%</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">${cards}</div>
+  </main>
+  <nav class="fixed bottom-0 w-full z-50 md:hidden border-t border-outline-variant bg-surface-container-lowest shadow-lg">
+    <div class="flex justify-around items-center px-4 py-2">
+      <a class="flex flex-col items-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1" href="#"><span class="material-symbols-outlined fill-icon">map</span><span class="font-label-sm text-label-sm mt-1">Path</span></a>
+      <a class="flex flex-col items-center text-on-surface-variant px-4 py-1 hover:bg-surface-container rounded-xl" href="#"><span class="material-symbols-outlined">menu_book</span><span class="font-label-sm text-label-sm mt-1">Library</span></a>
+      <a class="flex flex-col items-center text-on-surface-variant px-4 py-1 hover:bg-surface-container rounded-xl" href="#"><span class="material-symbols-outlined">leaderboard</span><span class="font-label-sm text-label-sm mt-1">Board</span></a>
+      <a class="flex flex-col items-center text-on-surface-variant px-4 py-1 hover:bg-surface-container rounded-xl" href="#"><span class="material-symbols-outlined">person</span><span class="font-label-sm text-label-sm mt-1">Profile</span></a>
+    </div>
+  </nav>`;
     }
 
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "ArrowLeft") {
-        if (state.targetX <= -state.frameMaxOffsetX + 0.5) {
-          state.bgTargetX = clamp(state.bgTargetX + bgStepX, -state.bgHalfOffsetX, state.bgHalfOffsetX);
-        } else {
-          state.targetX = clamp(state.targetX - frameStepX, -state.frameMaxOffsetX, state.frameMaxOffsetX);
-        }
-      } else if (event.key === "ArrowRight") {
-        if (state.targetX >= state.frameMaxOffsetX - 0.5) {
-          state.bgTargetX = clamp(state.bgTargetX - bgStepX, -state.bgHalfOffsetX, state.bgHalfOffsetX);
-        } else {
-          state.targetX = clamp(state.targetX + frameStepX, -state.frameMaxOffsetX, state.frameMaxOffsetX);
-        }
-      } else if (event.key === "ArrowUp") {
-        state.targetY = clamp(state.targetY - frameStepY, -state.frameMaxOffsetY, state.frameMaxOffsetY);
-      } else if (event.key === "ArrowDown") {
-        state.targetY = clamp(state.targetY + frameStepY, -state.frameMaxOffsetY, state.frameMaxOffsetY);
-      }
-    });
+    // ---------- GAME VIEW ----------
+    function renderGame() {
+      const level = state.selectedLevel;
+      const steps = level.instructions.map((s, i) => `
+    <li class="flex items-start gap-3">
+      <span class="bg-surface-container text-primary rounded-full w-6 h-6 flex items-center justify-center font-label-sm shrink-0 mt-0.5">${i + 1}</span>
+      <div>${s}</div>
+    </li>`).join('');
 
-    window.addEventListener("resize", () => {
+      const refImgHTML = level.image
+        ? `<div class="mt-space-lg">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 mb-space-sm">
+          <span class="material-symbols-outlined text-primary fill-icon">image</span>參考範例
+        </h2>
+        <img src="${level.image}" alt="參考範例" class="w-full rounded-lg border border-outline-variant"/>
+        <p class="font-label-sm text-label-sm text-outline mt-2 text-center">範例：${level.question}</p>
+      </div>` : '';
+
+
+      return `
+  <header class="bg-surface-container-lowest border-b border-outline-variant shadow-sm w-full top-0 z-40 sticky">
+    <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-max-width-content mx-auto">
+      <button id="back-btn" class="flex items-center gap-1 text-primary hover:text-primary-container font-label-md text-label-md transition-colors p-2 hover:bg-surface-container rounded-full">
+        <span class="material-symbols-outlined text-sm">arrow_back</span>返回主選單
+      </button>
+      <div class="font-headline-md text-headline-md font-bold text-primary flex items-center gap-2">
+        <span class="material-symbols-outlined fill-icon">photo_camera</span>EduQuest
+      </div>
+      <div class="flex items-center gap-4 text-primary">
+        <button id="album-game-btn" class="flex items-center gap-1 hover:bg-surface-container px-3 py-2 rounded-full transition-colors font-label-md text-label-md"><span class="material-symbols-outlined fill-icon text-[20px]">photo_library</span>相簿</button>
+      </div>
+    </div>
+  </header>
+  <main class="flex-grow w-full mx-auto py-space-md px-space-md view-enter flex flex-col gap-space-md">
+    <!-- 遊戲區：視差互動場景（滿版上方） -->
+    <section class="w-full relative">
+      <div class="bg-surface-container-lowest ambient-shadow relative overflow-hidden flex flex-col mx-auto" style="height:calc(100vh - 64px);aspect-ratio:4/3;width:auto;max-width:100%;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,0.45);">
+        <div id="game-container" class="flex-grow relative">
+          <!-- Parallax scene injected by JS -->
+        </div>
+        <div class="p-space-sm px-space-md bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
+          <div class="flex items-center gap-2 text-on-surface-variant font-body-sm pulse-hint">
+            <span class="material-symbols-outlined text-[18px]">keyboard</span>
+            <span>方向鍵移動取景框 · 拖曳也可以</span>
+          </div>
+          <button id="submit-btn" class="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg hover:bg-surface-tint active:scale-95 transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
+            提交拍攝 <span class="material-symbols-outlined text-sm">photo_camera</span>
+          </button>
+        </div>
+        <!-- Result overlay -->
+        <div id="result-overlay" class="result-overlay">
+          <div class="result-card">
+            <div id="result-icon" class="mb-4"></div>
+            <h3 id="result-title" class="font-headline-md text-headline-md text-on-surface mb-2"></h3>
+            <p id="result-message" class="font-body-md text-body-md text-on-surface-variant mb-4"></p>
+            <div class="flex gap-3">
+              <button id="retry-btn" class="flex-1 bg-surface-variant text-primary font-label-md text-label-md py-3 rounded-lg hover:bg-surface-dim transition-colors border border-outline-variant">重新拍攝</button>
+              <button id="next-btn" class="flex-1 bg-primary text-on-primary font-label-md text-label-md py-3 rounded-lg hover:bg-surface-tint transition-all shadow-sm">下一關</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 題目區：橫式排列在下方 -->
+    <section class="w-full max-w-max-width-content mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        <!-- 題目與技法 -->
+        <div class="bg-surface-container-lowest rounded-xl ambient-shadow p-space-lg">
+          <div class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full font-label-sm text-label-sm w-fit mb-space-sm flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">route</span>關卡 ${level.id} / ${LEVELS.length}
+          </div>
+          <h2 class="font-headline-sm text-headline-sm text-primary mb-space-xs">題目：${level.question}</h2>
+          <div class="mt-space-sm bg-surface-container-low rounded-lg p-space-md border border-outline-variant">
+            <h3 class="font-label-md text-label-md text-secondary flex items-center gap-2 mb-1">
+              <span class="material-symbols-outlined fill-icon text-secondary">auto_awesome</span>${level.technique}
+            </h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">${level.techniqueDesc}</p>
+          </div>
+          ${refImgHTML}
+        </div>
+
+        <!-- 操作說明 -->
+        <div class="bg-surface-container-lowest rounded-xl ambient-shadow p-space-lg">
+          <h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 mb-space-sm">
+            <span class="material-symbols-outlined text-tertiary fill-icon">menu_book</span>操作說明
+          </h2>
+          <ul class="list-none space-y-3 font-body-sm text-body-sm text-on-surface-variant">${steps}</ul>
+          <div class="mt-space-md bg-tertiary-fixed/30 rounded-lg p-space-md border border-tertiary-fixed">
+            <h3 class="font-label-md text-label-md text-tertiary flex items-center gap-2 mb-2">
+              <span class="material-symbols-outlined fill-icon text-tertiary">lightbulb</span>提示與補充
+            </h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">${level.tips}</p>
+          </div>
+        </div>
+
+        <!-- 進度 -->
+        <div class="bg-surface-container-lowest rounded-xl ambient-shadow p-space-lg flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <span class="font-label-md text-label-md text-on-surface-variant">學習進度</span>
+              <span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-1 rounded-full">${level.technique}</span>
+            </div>
+            <div class="w-full bg-surface-variant rounded-full h-2">
+              <div class="bg-secondary h-2 rounded-full transition-all" style="width:${Math.round(level.id / LEVELS.length * 100)}%"></div>
+            </div>
+            <p class="font-label-sm text-label-sm text-outline mt-2 text-right">單元 ${level.id}/${LEVELS.length}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>`;
+    }
+
+    // =============================================
+    // Event Binding
+    // =============================================
+    function bindMenuEvents() {
+      document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedLevel = LEVELS.find(l => l.id === parseInt(btn.dataset.id));
+          state.view = 'game';
+          state.showResult = false;
+          resetParallax();
+          render();
+        });
+      });
+      const albumBtn = document.getElementById('album-menu-btn');
+      if (albumBtn) albumBtn.addEventListener('click', () => { state.view = 'album'; render(); });
+    }
+
+    function bindGameEvents() {
+      document.getElementById('back-btn').addEventListener('click', () => { state.view = 'menu'; render(); });
+      document.getElementById('submit-btn').addEventListener('click', submitAnswer);
+      const albumGameBtn = document.getElementById('album-game-btn');
+      if (albumGameBtn) albumGameBtn.addEventListener('click', () => { state.view = 'album'; render(); });
+      document.getElementById('retry-btn').addEventListener('click', () => {
+        state.showResult = false;
+        document.getElementById('result-overlay').classList.remove('show');
+        resetParallax();
+      });
+      document.getElementById('next-btn').addEventListener('click', () => {
+        const next = LEVELS.find(l => l.id === state.selectedLevel.id + 1);
+        if (next) {
+          state.selectedLevel = next;
+          state.showResult = false;
+          resetParallax();
+          state.view = 'game';
+          render();
+        } else {
+          state.view = 'menu';
+          render();
+        }
+      });
+    }
+
+    // =============================================
+    // Parallax Game Engine (from 實作/)
+    // =============================================
+    const FRAME_STEP_X = 20, FRAME_STEP_Y = 30, BG_STEP_X = 40, BG_STEP_Y = 30;
+    const FAR_SCALE = 1, MID_SCALE = 1, NEAR_SCALE = 1;
+    const EASE = 0.08;
+    const SPEEDS = { far: 0, mid: 0.1, near: 1 };
+    const CROUCH_SPEEDS = { far: 0, mid: 0.35, near: 0.18 };
+
+    function resetParallax() {
+      pState.targetX = 0; pState.currentX = 0;
+      pState.targetY = 0; pState.currentY = 0;
+      pState.bgTargetX = 0; pState.bgCurrentX = 0;
+      pState.bgTargetY = 0; pState.bgCurrentY = 0;
+    }
+
+    function initParallaxGame() {
+      const container = document.getElementById('game-container');
+      container.innerHTML = `
+    <div class="scene" id="g-scene" style="position:absolute;inset:0;border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at 60% 50%,#2a3a5c 0%,#10182a 20%);">
+      <div class="layer far" id="g-far"></div>
+      <div class="layer middle" id="g-mid"></div>
+      <div class="layer near" id="g-near"></div>
+      <div class="fog"></div>
+      <img class="vf-frame" id="g-frame" src="素材/frame.png" alt="frame"/>
+      <div class="scene-hint">← → ↑ ↓ 移動取景框</div>
+    </div>`;
+
+      const scene = document.getElementById('g-scene');
+      const far = document.getElementById('g-far');
+      const mid = document.getElementById('g-mid');
+      const near = document.getElementById('g-near');
+      const frame = document.getElementById('g-frame');
+
+      far.style.backgroundImage = "url('素材/back2.png')";
+      mid.style.backgroundImage = "url('素材/middle.png')";
+      near.style.backgroundImage = "url('素材/front.png')";
+
+      // Preload & compute sizes
+      const imgs = [
+        { el: far, src: '素材/back2.png' },
+        { el: mid, src: '素材/middle.png' },
+        { el: near, src: '素材/front.png' }
+      ];
+
+      function updateMetrics() {
+        const rect = scene.getBoundingClientRect();
+        const vw = rect.width, vh = rect.height;
+        if (!vw || !vh) return;
+
+        let bgMax = 0;
+        const CROUCH_RANGE = 120;
+        const midImg = new Image();
+        midImg.onload = () => {
+          const padFactor = 1.15;
+          const s = Math.max(vh / midImg.naturalHeight, vw / midImg.naturalWidth) * padFactor;
+          const w = midImg.naturalWidth * s, h = midImg.naturalHeight * s;
+          far.style.backgroundSize = `${w}px ${h}px`;
+          mid.style.backgroundSize = `${w}px ${h}px`;
+          const nw = w * 1.15, nh = h * 1.15;
+          near.style.backgroundSize = `${nw}px ${nh}px`;
+          bgMax = Math.max(0, (w - vw) / 2);
+          pState.bgHalfOffsetX = bgMax || 200;
+          pState.bgHalfOffsetY = CROUCH_RANGE;
+        };
+        midImg.src = '素材/middle.png';
+
+        const fw = frame.getBoundingClientRect().width || vw * 0.2;
+        const fh = frame.getBoundingClientRect().height || vh * 0.2;
+        pState.frameMaxX = Math.max(0, (vw - fw) / 2);
+        pState.frameMaxY = Math.max(0, (vh - fh) / 2);
+
+        pState.targetX = clamp(pState.targetX, -pState.frameMaxX, pState.frameMaxX);
+        pState.targetY = clamp(pState.targetY, -pState.frameMaxY, pState.frameMaxY);
+        pState.bgTargetX = clamp(pState.bgTargetX, -pState.bgHalfOffsetX, pState.bgHalfOffsetX);
+        pState.bgTargetY = clamp(pState.bgTargetY, -pState.bgHalfOffsetY, pState.bgHalfOffsetY);
+      }
+
       updateMetrics();
-    });
+      window.addEventListener('resize', updateMetrics);
 
-    farImage.addEventListener("load", updateMetrics);
-    middleImage.addEventListener("load", updateMetrics);
-    nearImage.addEventListener("load", updateMetrics);
-    updateMetrics();
+      // Animation loop
+      function loop() {
+        const smooth = 1 - Math.pow(1 - EASE, 1);
+        pState.currentX += (pState.targetX - pState.currentX) * smooth;
+        pState.currentY += (pState.targetY - pState.currentY) * smooth;
+        pState.bgCurrentX += (pState.bgTargetX - pState.bgCurrentX) * smooth;
+        pState.bgCurrentY += (pState.bgTargetY - pState.bgCurrentY) * smooth;
 
-    requestAnimationFrame(animate);
+        const midX = pState.bgCurrentX * SPEEDS.mid;
+        const nearX = pState.bgCurrentX * SPEEDS.near;
+        const midY = pState.bgCurrentY * CROUCH_SPEEDS.mid;
+        const nearY = pState.bgCurrentY * CROUCH_SPEEDS.near;
+
+        far.style.backgroundPosition = '50% bottom';
+        mid.style.backgroundPosition = `calc(50% + ${midX}px) calc(100% + ${midY}px)`;
+        near.style.backgroundPosition = `calc(50% + ${nearX}px) calc(100% + ${nearY}px)`;
+
+        frame.style.transform = `translate(calc(-50% + ${pState.currentX}px), calc(-50% + ${pState.currentY}px))`;
+
+        animId = requestAnimationFrame(loop);
+      }
+      animId = requestAnimationFrame(loop);
+
+      // Keyboard controls
+      function onKey(e) {
+        if (state.view !== 'game' || state.showResult) return;
+        if (e.key === 'ArrowLeft') {
+          if (pState.targetX <= -pState.frameMaxX + 0.5)
+            pState.bgTargetX = clamp(pState.bgTargetX + BG_STEP_X, -pState.bgHalfOffsetX, pState.bgHalfOffsetX);
+          else pState.targetX = clamp(pState.targetX - FRAME_STEP_X, -pState.frameMaxX, pState.frameMaxX);
+          e.preventDefault();
+        } else if (e.key === 'ArrowRight') {
+          if (pState.targetX >= pState.frameMaxX - 0.5)
+            pState.bgTargetX = clamp(pState.bgTargetX - BG_STEP_X, -pState.bgHalfOffsetX, pState.bgHalfOffsetX);
+          else pState.targetX = clamp(pState.targetX + FRAME_STEP_X, -pState.frameMaxX, pState.frameMaxX);
+          e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+          if (pState.targetY <= -pState.frameMaxY + 0.5)
+            pState.bgTargetY = clamp(pState.bgTargetY + BG_STEP_Y, -pState.bgHalfOffsetY, pState.bgHalfOffsetY);
+          else pState.targetY = clamp(pState.targetY - FRAME_STEP_Y, -pState.frameMaxY, pState.frameMaxY);
+          e.preventDefault();
+        } else if (e.key === 'ArrowDown') {
+          if (pState.targetY >= pState.frameMaxY - 0.5)
+            pState.bgTargetY = clamp(pState.bgTargetY - BG_STEP_Y, -pState.bgHalfOffsetY, pState.bgHalfOffsetY);
+          else pState.targetY = clamp(pState.targetY + FRAME_STEP_Y, -pState.frameMaxY, pState.frameMaxY);
+          e.preventDefault();
+        }
+      }
+      window.removeEventListener('keydown', window._gKeyHandler);
+      window._gKeyHandler = onKey;
+      window.addEventListener('keydown', onKey);
+
+      // Pointer drag
+      let dragging = false, lastX = 0, lastY = 0;
+      scene.addEventListener('pointerdown', e => {
+        dragging = true; lastX = e.clientX; lastY = e.clientY;
+        scene.setPointerCapture(e.pointerId);
+      });
+      scene.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        const dx = e.clientX - lastX, dy = e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        pState.targetX = clamp(pState.targetX + dx, -pState.frameMaxX, pState.frameMaxX);
+        pState.targetY = clamp(pState.targetY + dy, -pState.frameMaxY, pState.frameMaxY);
+      });
+      scene.addEventListener('pointerup', () => { dragging = false; });
+    }
+
+    // =============================================
+    // 提交拍攝（儲存位置資訊，純 CSS 還原）
+    // =============================================
+    function submitAnswer() {
+      if (state.isSubmitting || state.showResult) return;
+      state.isSubmitting = true;
+      const level = state.selectedLevel;
+
+      // 記錄取景框當前位置（直接存對象，不用 Canvas）
+      const scene = document.getElementById('g-scene');
+      const rect = scene.getBoundingClientRect();
+      const W = rect.width || 1, H = rect.height || 1;
+      state.capturedImages[level.id] = {
+        frameLeft: 50 + (pState.currentX / W * 100),          // 取景框 left%
+        frameTop:  50 + (pState.currentY / H * 100),          // 取景框 top%
+        bgNormX: pState.bgCurrentX / (pState.bgHalfOffsetX || 200)  // 背景徧移 -1~1
+      };
+
+      // 標記完成
+      state.completedLevels[level.id] = true;
+      state.showResult = true;
+
+      // 更新彈窗
+      const overlay = document.getElementById('result-overlay');
+      document.getElementById('result-icon').innerHTML =
+        '<span class="material-symbols-outlined fill-icon text-secondary" style="font-size:64px">check_circle</span>';
+      document.getElementById('result-title').textContent = '拍攝完成！';
+      document.getElementById('result-message').textContent =
+        `「${level.title}」已成功拍攝，影像已儲存至相簿。`;
+
+      const nextLevel = LEVELS.find(l => l.id === level.id + 1);
+      document.getElementById('next-btn').textContent = nextLevel ? '下一關' : '回到主選單';
+
+      setTimeout(() => overlay.classList.add('show'), 100);
+      state.isSubmitting = false;
+    }
+
+    function renderAlbum() {
+      const S = (100 / 17); // 取景框 17%，放大倍率 ≈ 5.88
+      const items = LEVELS.map(level => {
+        const pos = state.capturedImages[level.id];
+        const captured = !!pos;
+        const innerLeft = captured ? (50 - pos.frameLeft * S).toFixed(2) : '0';
+        const innerTop  = captured ? (50 - pos.frameTop  * S).toFixed(2) : '0';
+        const midShift  = captured ? (pos.bgNormX * 8).toFixed(1)  : '0';
+        const nearShift = captured ? (pos.bgNormX * 13).toFixed(1) : '0';
+
+        const sceneHTML = captured ? `
+          <div style="position:absolute;width:${(S*100).toFixed(0)}%;height:${(S*100).toFixed(0)}%;left:${innerLeft}%;top:${innerTop}%;">
+            <div style="position:absolute;inset:0;background:url('素材/back2.png') 50% bottom/cover no-repeat;"></div>
+            <div style="position:absolute;inset:0;background:url('素材/middle.png') calc(50% + ${midShift}%) bottom/cover no-repeat;"></div>
+            <div style="position:absolute;inset:0;background:url('素材/front.png') calc(50% + ${nearShift}%) bottom/cover no-repeat;"></div>
+          </div>
+        ` : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+          <span class="material-symbols-outlined text-outline-variant" style="font-size:48px">photo_camera</span>
+        </div>`;
+
+        return `
+        <div class="bg-surface-container-lowest rounded-xl ambient-shadow overflow-hidden${captured ? ' album-card' : ''}"
+             ${captured ? `data-lid="${level.id}" style="cursor:pointer;"` : ''}>
+          <div style="position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;border-radius:12px 12px 0 0;background:radial-gradient(ellipse at 60% 50%,#2a3a5c 0%,#10182a 20%);">
+            ${sceneHTML}
+            ${captured ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;background:rgba(0,0,0,0.3);" class="album-hover-overlay"><span class="material-symbols-outlined" style="font-size:40px;color:white;">zoom_in</span></div>' : ''}
+          </div>
+          <div class="p-4">
+            <div class="font-label-sm text-label-sm text-outline mb-1">關卡 ${level.id}</div>
+            <div class="font-headline-sm text-headline-sm text-on-surface">${level.title}</div>
+            <div class="font-body-sm text-body-sm ${captured ? 'text-secondary' : 'text-outline'} mt-1 flex items-center gap-1">
+              <span class="material-symbols-outlined ${captured ? 'fill-icon' : ''}" style="font-size:16px">${captured ? 'check_circle' : 'radio_button_unchecked'}</span>
+              ${captured ? '已拍攝（點擊放大）' : '尚未拍攝'}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      return `
+      <style>
+        .album-card:hover .album-hover-overlay { opacity:1 !important; }
+        #lightbox { display:none; position:fixed; inset:0; z-index:200;
+          background:rgba(0,0,0,0.88); align-items:center; justify-content:center; }
+        #lightbox.open { display:flex; }
+      </style>
+      <!-- 燈箱 -->
+      <div id="lightbox">
+        <div style="position:relative;width:min(90vw, calc(90vh * 4/3));max-width:900px;">
+          <button id="lightbox-close" style="position:absolute;top:-44px;right:0;background:none;border:none;color:white;font-size:32px;cursor:pointer;line-height:1;">✕</button>
+          <div id="lightbox-scene" style="width:100%;aspect-ratio:4/3;position:relative;overflow:hidden;border-radius:16px;background:#10182a;"></div>
+          <p id="lightbox-label" style="color:rgba(255,255,255,0.7);text-align:center;margin-top:12px;font-size:14px;"></p>
+        </div>
+      </div>
+      <header class="bg-surface-container-lowest border-b border-outline-variant shadow-sm w-full sticky top-0 z-50">
+        <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-max-width-content mx-auto">
+          <button id="album-back-btn" class="flex items-center gap-1 text-primary hover:text-primary-container font-label-md text-label-md transition-colors p-2 hover:bg-surface-container rounded-full">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>返回主選單
+          </button>
+          <div class="font-headline-md text-headline-md font-bold text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined fill-icon">photo_library</span>拍攝相簿
+          </div>
+          <div style="width:80px"></div>
+        </div>
+      </header>
+      <main class="max-w-max-width-content mx-auto px-margin-mobile md:px-margin-desktop py-space-xxl view-enter">
+        <h1 class="font-headline-xl text-headline-xl text-on-surface mb-space-sm">拍攝相簿</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant mb-space-xl">每一關的構圖成果都保存在這裡。點擊已拍攝的卡片可放大檢視。</p>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-gutter">${items}</div>
+      </main>`;
+    }
+
+    function bindAlbumEvents() {
+      const S = (100 / 17);
+      document.getElementById('album-back-btn').addEventListener('click', () => {
+        state.view = 'menu'; render();
+      });
+
+      // 燈箱開啟
+      document.querySelectorAll('.album-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const lid = parseInt(card.dataset.lid);
+          const pos = state.capturedImages[lid];
+          const level = LEVELS.find(l => l.id === lid);
+          if (!pos) return;
+
+          const innerLeft = (50 - pos.frameLeft * S).toFixed(2);
+          const innerTop  = (50 - pos.frameTop  * S).toFixed(2);
+          const midShift  = (pos.bgNormX * 8).toFixed(1);
+          const nearShift = (pos.bgNormX * 13).toFixed(1);
+          const w = (S * 100).toFixed(0);
+
+          document.getElementById('lightbox-scene').innerHTML = `
+            <div style="position:absolute;width:${w}%;height:${w}%;left:${innerLeft}%;top:${innerTop}%;">
+              <div style="position:absolute;inset:0;background:url('素材/back2.png') 50% bottom/cover no-repeat;"></div>
+              <div style="position:absolute;inset:0;background:url('素材/middle.png') calc(50% + ${midShift}%) bottom/cover no-repeat;"></div>
+              <div style="position:absolute;inset:0;background:url('素材/front.png') calc(50% + ${nearShift}%) bottom/cover no-repeat;"></div>
+            </div>`;
+          document.getElementById('lightbox-label').textContent =
+            `關卡 ${lid}：${level ? level.title : ''}`;
+          document.getElementById('lightbox').classList.add('open');
+        });
+      });
+
+      // 燈箱關閉
+      document.getElementById('lightbox-close').addEventListener('click', () => {
+        document.getElementById('lightbox').classList.remove('open');
+      });
+      document.getElementById('lightbox').addEventListener('click', e => {
+        if (e.target === document.getElementById('lightbox'))
+          document.getElementById('lightbox').classList.remove('open');
+      });
+    }
+
+    // =============================================
+    // Init
+    // =============================================
+    localStorage.clear(); // 每次載入清空所有緩存
+    render();
   </script>
 </body>
+
 </html>
