@@ -269,7 +269,7 @@
         question: "使用框架構圖拍攝人物與帳篷",
         technique: "框架構圖",
         techniqueDesc: "利用周圍景物作為前景框架，將主體包圍起來，可增添畫面層次感。",
-        image: "素材/q1.jpg",
+        image: "素材/q1_1.jpg",
         answerImage: "素材/q1_1.jpg",
         instructions: [
           "在視差場景中移動取景框，尋找適合的構圖位置。",
@@ -303,7 +303,7 @@
         question: "用引導線構圖拍攝河流與山交接",
         technique: "引導線構圖",
         techniqueDesc: "利用畫面中的線條元素，將觀看者視線引導至視覺焦點。",
-        image: "素材/q3.jpg",
+        image: "素材/q3_1.jpg",
         answerImage: "素材/q3_1.jpg",
         instructions: [
           "在場景中尋找具有線條感的元素（如河流、道路、山脊線）。",
@@ -320,7 +320,7 @@
         question: "用中心點構圖拍攝營地",
         technique: "中心點構圖",
         techniqueDesc: "將拍攝主體放置在畫面正中央，能瞬間集中視線、強調主題。",
-        image: "素材/q4.jpg",
+        image: "素材/q4_1.png",
         answerImage: "素材/q4_1.png",
         instructions: [
           "找出場景中最重要的主體元素。",
@@ -337,7 +337,7 @@
         question: "用前景構圖拍攝小橋和花卉",
         technique: "前景構圖",
         techniqueDesc: "在主體前方加入元素做為前景，增強相片立體感、層次感與故事性。",
-        image: "素材/q5.jpg",
+        image: "素材/q5_1.jpg",
         answerImage: "素材/q5_1.jpg",
         instructions: [
           "觀察場景中的前景元素（如花卉、草叢、石頭）。",
@@ -373,8 +373,9 @@
     const state = {
       view: 'menu',
       selectedLevel: null,
+      sessionLevels: [],     // 本次隨機抽取的 3 題
       completedLevels: {},   // 純記憶體，重新載入即清空
-      capturedImages: {},    // levelId -> base64 dataURL
+      capturedImages: {},    // levelId -> 拍攝位置資料
       showResult: false,
       isSubmitting: false
     };
@@ -392,13 +393,30 @@
 
     let animId = null;
 
+    // Preload layer images for canvas capture
+    const layerImages = {};
+    ['far', 'mid', 'near'].forEach(key => {
+      const img = new Image();
+      img.src = key === 'far' ? '素材/back2.png' : key === 'mid' ? '素材/middle.png' : '素材/front.png';
+      layerImages[key] = img;
+    });
+
     // 不再使用 localStorage（每次重新載入即清空）
+    // 從題庫中隨機抽取指定數量的題目
+    function pickRandomLevels(count) {
+      const shuffled = [...LEVELS].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, count);
+    }
+    // 取得關卡在本次題組中的順序索引
+    function getSessionIndex(levelId) {
+      return state.sessionLevels.findIndex(l => l.id === levelId);
+    }
     function getOverallProgress() {
-      return Math.round((Object.keys(state.completedLevels).length / LEVELS.length) * 100);
+      const done = state.sessionLevels.filter(l => state.completedLevels[l.id]).length;
+      return Math.round((done / state.sessionLevels.length) * 100);
     }
     function getLevelStatus(level) {
-      if (state.completedLevels[level.id]) return 'completed';
-      return (level.id === 1 || state.completedLevels[level.id - 1]) ? 'available' : 'locked';
+      return state.completedLevels[level.id] ? 'completed' : 'available';
     }
     function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
@@ -424,33 +442,23 @@
     // ---------- MENU ----------
     function renderMenu() {
       const progress = getOverallProgress();
-      const cards = LEVELS.map(level => {
-        const status = getLevelStatus(level);
-        const done = status === 'completed';
-        const isLocked = status === 'locked';
-        const isCurrent = status === 'available' && !done;
-
-        const border = isCurrent
-          ? 'border-primary-fixed ring-1 ring-primary-fixed ring-offset-2 ring-offset-background hover:-translate-y-1'
-          : isLocked ? 'border-transparent opacity-75 grayscale-[0.3]' : 'border-transparent hover:border-outline-variant';
-
-        const btn = isLocked
-          ? `<button class="w-full bg-surface-container text-outline font-label-md text-label-md py-3 rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled><span class="material-symbols-outlined text-[18px]">lock</span>尚未解鎖</button>`
-          : done
-            ? `<button class="level-btn w-full bg-surface-variant text-primary font-label-md text-label-md py-3 rounded-lg hover:bg-surface-dim transition-colors border border-primary-fixed-dim" data-id="${level.id}">重新複習</button>`
-            : `<button class="level-btn w-full bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-surface-tint shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2" data-id="${level.id}"><span class="material-symbols-outlined text-[18px]">play_arrow</span>開始學習</button>`;
-
-        const badge = isLocked ? 'bg-surface-container text-outline' : isCurrent ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container text-primary';
-        const curBadge = isCurrent ? '<div class="absolute top-3 right-3 bg-primary text-on-primary font-label-sm text-label-sm px-2 py-1 rounded shadow-sm">當前進度</div>' : '';
+      const cards = state.sessionLevels.map((level, sIdx) => {
+        const done = !!state.completedLevels[level.id];
+        const border = done
+          ? 'border-transparent hover:border-outline-variant'
+          : 'border-primary-fixed ring-1 ring-primary-fixed ring-offset-2 ring-offset-background hover:-translate-y-1';
+        const btn = done
+          ? `<button class="level-btn w-full bg-surface-variant text-primary font-label-md text-label-md py-3 rounded-lg hover:bg-surface-dim transition-colors border border-primary-fixed-dim" data-id="${level.id}">重新複習</button>`
+          : `<button class="level-btn w-full bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-surface-tint shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2" data-id="${level.id}"><span class="material-symbols-outlined text-[18px]">play_arrow</span>開始學習</button>`;
+        const badge = done ? 'bg-surface-container text-primary' : 'bg-primary-container text-on-primary-container';
         const doneTag = done ? '<div class="flex gap-1 mt-1 items-center text-secondary font-label-sm text-label-sm"><span class="material-symbols-outlined fill-icon" style="font-size:16px">check_circle</span>已拍攝</div>' : '';
-        const lockOverlay = isLocked ? '<div class="absolute inset-0 bg-surface/40 backdrop-blur-[2px] flex items-center justify-center"><div class="bg-surface-container-lowest p-3 rounded-full shadow-md"><span class="material-symbols-outlined text-outline text-[32px]">lock</span></div></div>' : '';
 
         return `<div class="bg-surface-container-lowest rounded-xl p-space-xl flex flex-col h-full ambient-shadow hover-shadow transition-all duration-300 border ${border} group">
       <div class="w-full h-48 rounded-lg mb-space-lg overflow-hidden bg-surface-container flex items-center justify-center relative">
-        <img src="${level.image}" alt="${level.title}" class="w-full h-full object-cover ${isLocked ? 'opacity-50' : 'opacity-90 group-hover:scale-105'} transition-transform duration-500"/>${curBadge}${lockOverlay}
+        <img src="${level.image}" alt="${level.title}" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"/>
       </div>
       <div class="${badge} px-3 py-1 rounded-full font-label-sm text-label-sm w-fit mb-space-md flex items-center gap-1">
-        <span class="material-symbols-outlined text-[14px]">${isLocked ? 'lock' : isCurrent ? 'route' : 'play_lesson'}</span>關卡 ${level.id}
+        <span class="material-symbols-outlined text-[14px]">${done ? 'play_lesson' : 'route'}</span>第 ${sIdx + 1} 題
       </div>
       <h2 class="font-headline-sm text-headline-sm text-on-surface mb-space-sm">${level.title}</h2>
       <p class="font-body-md text-body-md text-on-surface-variant flex-grow mb-space-sm">${level.techniqueDesc}</p>
@@ -480,8 +488,8 @@
   <main class="max-w-max-width-content mx-auto px-margin-mobile md:px-margin-desktop py-space-xxl view-enter">
     <div class="mb-space-xl text-center md:text-left flex flex-col md:flex-row justify-between items-end gap-space-md">
       <div>
-        <h1 class="font-headline-xl text-headline-xl text-on-surface mb-space-sm">學習路徑</h1>
-        <p class="font-body-lg text-body-lg text-on-surface-variant">選擇您要挑戰的關卡，開始今天的攝影構圖學習旅程。</p>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface mb-space-sm">本次題組</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant">從題庫隨機抽取 3 題，完成所有題目即可查看相簿。重新整理頁面可取得新題組。</p>
       </div>
       <div class="bg-surface-container px-4 py-2 rounded-full flex items-center gap-space-sm shadow-sm border border-outline-variant">
         <span class="material-symbols-outlined text-primary">local_fire_department</span>
@@ -570,7 +578,7 @@
         <!-- 題目與技法 -->
         <div class="bg-surface-container-lowest rounded-xl ambient-shadow p-space-lg">
           <div class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full font-label-sm text-label-sm w-fit mb-space-sm flex items-center gap-1">
-            <span class="material-symbols-outlined text-[14px]">route</span>關卡 ${level.id} / ${LEVELS.length}
+            <span class="material-symbols-outlined text-[14px]">route</span>第 ${getSessionIndex(level.id) + 1} 題 / ${state.sessionLevels.length}
           </div>
           <h2 class="font-headline-sm text-headline-sm text-primary mb-space-xs">題目：${level.question}</h2>
           <div class="mt-space-sm bg-surface-container-low rounded-lg p-space-md border border-outline-variant">
@@ -604,9 +612,9 @@
               <span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-1 rounded-full">${level.technique}</span>
             </div>
             <div class="w-full bg-surface-variant rounded-full h-2">
-              <div class="bg-secondary h-2 rounded-full transition-all" style="width:${Math.round(level.id / LEVELS.length * 100)}%"></div>
+              <div class="bg-secondary h-2 rounded-full transition-all" style="width:${Math.round((getSessionIndex(level.id) + 1) / state.sessionLevels.length * 100)}%"></div>
             </div>
-            <p class="font-label-sm text-label-sm text-outline mt-2 text-right">單元 ${level.id}/${LEVELS.length}</p>
+            <p class="font-label-sm text-label-sm text-outline mt-2 text-right">第 ${getSessionIndex(level.id) + 1} 題 / ${state.sessionLevels.length}</p>
           </div>
         </div>
       </div>
@@ -642,7 +650,8 @@
         resetParallax();
       });
       document.getElementById('next-btn').addEventListener('click', () => {
-        const next = LEVELS.find(l => l.id === state.selectedLevel.id + 1);
+        const sIdx = getSessionIndex(state.selectedLevel.id);
+        const next = sIdx < state.sessionLevels.length - 1 ? state.sessionLevels[sIdx + 1] : null;
         if (next) {
           state.selectedLevel = next;
           state.showResult = false;
@@ -717,6 +726,8 @@
           mid.style.backgroundSize = `${w}px ${h}px`;
           const nw = w * 1.15, nh = h * 1.15;
           near.style.backgroundSize = `${nw}px ${nh}px`;
+          pState.bgW = w; pState.bgH = h;
+          pState.nearBgW = nw; pState.nearBgH = nh;
           bgMax = Math.max(0, (w - vw) / 2);
           pState.bgHalfOffsetX = bgMax || 200;
           pState.bgHalfOffsetY = CROUCH_RANGE;
@@ -813,15 +824,58 @@
       state.isSubmitting = true;
       const level = state.selectedLevel;
 
-      // 記錄取景框當前位置（直接存對象，不用 Canvas）
+      // Canvas-based real screenshot capture
       const scene = document.getElementById('g-scene');
       const rect = scene.getBoundingClientRect();
-      const W = rect.width || 1, H = rect.height || 1;
-      state.capturedImages[level.id] = {
-        frameLeft: 50 + (pState.currentX / W * 100),          // 取景框 left%
-        frameTop:  50 + (pState.currentY / H * 100),          // 取景框 top%
-        bgNormX: pState.bgCurrentX / (pState.bgHalfOffsetX || 200)  // 背景徧移 -1~1
-      };
+      const W = rect.width, H = rect.height;
+
+      const frameW = W * 0.17, frameH = H * 0.17;
+      const frameCX = W / 2 + pState.currentX;
+      const frameCY = H / 2 + pState.currentY;
+      const frameLeft = frameCX - frameW / 2;
+      const frameTop = frameCY - frameH / 2;
+
+      const bgW = pState.bgW || W;
+      const bgH = pState.bgH || H;
+      const nearBgW = pState.nearBgW || bgW * 1.15;
+      const nearBgH = pState.nearBgH || bgH * 1.15;
+
+      const midX = pState.bgCurrentX * SPEEDS.mid;
+      const nearX = pState.bgCurrentX * SPEEDS.near;
+      const midY = pState.bgCurrentY * CROUCH_SPEEDS.mid;
+      const nearY = pState.bgCurrentY * CROUCH_SPEEDS.near;
+
+      const farImgLeft = (W - bgW) / 2;
+      const farImgTop = H - bgH;
+      const midImgLeft = (W - bgW) / 2 + midX;
+      const midImgTop = H - bgH + midY;
+      const nearImgLeft = (W - nearBgW) / 2 + nearX;
+      const nearImgTop = H - nearBgH + nearY;
+
+      const canvas = document.createElement('canvas');
+      const dpr = 2;
+      canvas.width = frameW * dpr;
+      canvas.height = frameH * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      // Draw background gradient
+      const grad = ctx.createRadialGradient(frameW * 0.6, frameH * 0.5, 0, frameW * 0.6, frameH * 0.5, frameW);
+      grad.addColorStop(0, '#2a3a5c');
+      grad.addColorStop(1, '#10182a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, frameW, frameH);
+
+      const draws = [
+        { img: layerImages.far, x: farImgLeft - frameLeft, y: farImgTop - frameTop, w: bgW, h: bgH },
+        { img: layerImages.mid, x: midImgLeft - frameLeft, y: midImgTop - frameTop, w: bgW, h: bgH },
+        { img: layerImages.near, x: nearImgLeft - frameLeft, y: nearImgTop - frameTop, w: nearBgW, h: nearBgH }
+      ];
+      draws.forEach(d => {
+        if (d.img.complete && d.img.naturalWidth) ctx.drawImage(d.img, d.x, d.y, d.w, d.h);
+      });
+
+      state.capturedImages[level.id] = canvas.toDataURL('image/jpeg', 0.92);
 
       // 標記完成
       state.completedLevels[level.id] = true;
@@ -835,7 +889,8 @@
       document.getElementById('result-message').textContent =
         `「${level.title}」已成功拍攝，影像已儲存至相簿。`;
 
-      const nextLevel = LEVELS.find(l => l.id === level.id + 1);
+      const sIdx = getSessionIndex(level.id);
+      const nextLevel = sIdx < state.sessionLevels.length - 1 ? state.sessionLevels[sIdx + 1] : null;
       document.getElementById('next-btn').textContent = nextLevel ? '下一關' : '回到主選單';
 
       setTimeout(() => overlay.classList.add('show'), 100);
@@ -843,34 +898,25 @@
     }
 
     function renderAlbum() {
-      const S = (100 / 17); // 取景框 17%，放大倍率 ≈ 5.88
-      const items = LEVELS.map(level => {
-        const pos = state.capturedImages[level.id];
-        const captured = !!pos;
-        const innerLeft = captured ? (50 - pos.frameLeft * S).toFixed(2) : '0';
-        const innerTop  = captured ? (50 - pos.frameTop  * S).toFixed(2) : '0';
-        const midShift  = captured ? (pos.bgNormX * 8).toFixed(1)  : '0';
-        const nearShift = captured ? (pos.bgNormX * 13).toFixed(1) : '0';
+      const items = state.sessionLevels.map((level, sIdx) => {
+        const dataUrl = state.capturedImages[level.id];
+        const captured = !!dataUrl;
 
-        const sceneHTML = captured ? `
-          <div style="position:absolute;width:${(S*100).toFixed(0)}%;height:${(S*100).toFixed(0)}%;left:${innerLeft}%;top:${innerTop}%;">
-            <div style="position:absolute;inset:0;background:url('素材/back2.png') 50% bottom/cover no-repeat;"></div>
-            <div style="position:absolute;inset:0;background:url('素材/middle.png') calc(50% + ${midShift}%) bottom/cover no-repeat;"></div>
-            <div style="position:absolute;inset:0;background:url('素材/front.png') calc(50% + ${nearShift}%) bottom/cover no-repeat;"></div>
-          </div>
-        ` : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-          <span class="material-symbols-outlined text-outline-variant" style="font-size:48px">photo_camera</span>
-        </div>`;
+        const imgHTML = captured
+          ? `<img src="${dataUrl}" alt="${level.title}" style="width:100%;height:100%;object-fit:cover;"/>`
+          : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+              <span class="material-symbols-outlined text-outline-variant" style="font-size:48px">photo_camera</span>
+            </div>`;
 
         return `
         <div class="bg-surface-container-lowest rounded-xl ambient-shadow overflow-hidden${captured ? ' album-card' : ''}"
              ${captured ? `data-lid="${level.id}" style="cursor:pointer;"` : ''}>
           <div style="position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;border-radius:12px 12px 0 0;background:radial-gradient(ellipse at 60% 50%,#2a3a5c 0%,#10182a 20%);">
-            ${sceneHTML}
+            ${imgHTML}
             ${captured ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;background:rgba(0,0,0,0.3);" class="album-hover-overlay"><span class="material-symbols-outlined" style="font-size:40px;color:white;">zoom_in</span></div>' : ''}
           </div>
           <div class="p-4">
-            <div class="font-label-sm text-label-sm text-outline mb-1">關卡 ${level.id}</div>
+            <div class="font-label-sm text-label-sm text-outline mb-1">第 ${sIdx + 1} 題</div>
             <div class="font-headline-sm text-headline-sm text-on-surface">${level.title}</div>
             <div class="font-body-sm text-body-sm ${captured ? 'text-secondary' : 'text-outline'} mt-1 flex items-center gap-1">
               <span class="material-symbols-outlined ${captured ? 'fill-icon' : ''}" style="font-size:16px">${captured ? 'check_circle' : 'radio_button_unchecked'}</span>
@@ -914,7 +960,6 @@
     }
 
     function bindAlbumEvents() {
-      const S = (100 / 17);
       document.getElementById('album-back-btn').addEventListener('click', () => {
         state.view = 'menu'; render();
       });
@@ -923,22 +968,12 @@
       document.querySelectorAll('.album-card').forEach(card => {
         card.addEventListener('click', () => {
           const lid = parseInt(card.dataset.lid);
-          const pos = state.capturedImages[lid];
+          const dataUrl = state.capturedImages[lid];
           const level = LEVELS.find(l => l.id === lid);
-          if (!pos) return;
+          if (!dataUrl) return;
 
-          const innerLeft = (50 - pos.frameLeft * S).toFixed(2);
-          const innerTop  = (50 - pos.frameTop  * S).toFixed(2);
-          const midShift  = (pos.bgNormX * 8).toFixed(1);
-          const nearShift = (pos.bgNormX * 13).toFixed(1);
-          const w = (S * 100).toFixed(0);
-
-          document.getElementById('lightbox-scene').innerHTML = `
-            <div style="position:absolute;width:${w}%;height:${w}%;left:${innerLeft}%;top:${innerTop}%;">
-              <div style="position:absolute;inset:0;background:url('素材/back2.png') 50% bottom/cover no-repeat;"></div>
-              <div style="position:absolute;inset:0;background:url('素材/middle.png') calc(50% + ${midShift}%) bottom/cover no-repeat;"></div>
-              <div style="position:absolute;inset:0;background:url('素材/front.png') calc(50% + ${nearShift}%) bottom/cover no-repeat;"></div>
-            </div>`;
+          document.getElementById('lightbox-scene').innerHTML =
+            `<img src="${dataUrl}" alt="${level ? level.title : ''}" style="width:100%;height:100%;object-fit:contain;border-radius:16px;"/>`;
           document.getElementById('lightbox-label').textContent =
             `關卡 ${lid}：${level ? level.title : ''}`;
           document.getElementById('lightbox').classList.add('open');
@@ -959,6 +994,7 @@
     // Init
     // =============================================
     localStorage.clear(); // 每次載入清空所有緩存
+    state.sessionLevels = pickRandomLevels(3);
     render();
   </script>
 </body>
